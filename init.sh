@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while getopts e:t:k:a:d:i:h:s:m:u:p:b: flag
+while getopts e:t:k:a:d:i:h:s:m:u:p:b:w: flag
 do
     case "${flag}" in
         e) ENV=${OPTARG};;
@@ -15,10 +15,11 @@ do
         u) EMAIL=${OPTARG};;
         p) PASSWORD=${OPTARG};;
         b) DB_BASE_PATH=${OPTARG};;
+        w) pwd=${OPTARG};;
     esac
 done
 
-if [[ $ENV == "" || $API_KEY == "" || $APP_ID == "" || $DB_URL == "" || $PROJECT_ID == "" || $AUTH_DOMAIN == "" || $STORAGE_BUCKET == "" || $MSG_SENDER_ID == "" || $EMAIL == "" || $PASSWORD == "" ]]; then
+if [[ $ENV == "" || $API_KEY == "" || $APP_ID == "" || $DB_URL == "" || $PROJECT_ID == "" || $AUTH_DOMAIN == "" || $STORAGE_BUCKET == "" || $MSG_SENDER_ID == "" || $EMAIL == "" || $PASSWORD == "" || $pwd == "" ]]; then
     echo "Required arguments missing"
     echo "Cannot proceed with operation. Exiting."
     exit 0
@@ -39,9 +40,16 @@ fi
 
 sudo npm install
 
-pwd=$(pwd)
+if [[ $pwd == "" ]]; then
+    pwd=$(pwd)
+fi
+
 sudo node $pwd/fetch_config.js --apiKey=$API_KEY --appId=$APP_ID --dbUrl=$DB_URL --projectId=$PROJECT_ID --authDomain=$AUTH_DOMAIN --storageBucket=$STORAGE_BUCKET --msgSenderId=$MSG_SENDER_ID --env=$ENV --envType=$ENV_TYPE --email=$EMAIL --password=$PASSWORD --dbBasePath=$DB_BASE_PATH --basePath=$pwd
-echo "Back to Bash"
+
+sudo sh $pwd/tunnels/monitor.sh
+
+echo "Came here"
+
 # # Get Firmware details
 
 # OSTYPE=$(uname)
