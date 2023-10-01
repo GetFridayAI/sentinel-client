@@ -1,7 +1,6 @@
 const fs = require('fs'),
     firebase = require('firebase/app'),
     database = require('firebase/database'),
-    requests = require('requests'),
     auth = require('firebase/auth');
 
 let firebaseConfig = {
@@ -44,20 +43,65 @@ process.argv.map((arg)=>{
     }
 });
 
-function fetchData() {
+const fileName = basePath + '/tunnels/' + env + (envType ? '.' + envType : '') + '.json';
+const tunnels = JSON.parse(fs.readFileSync(fileName, { encoding: 'utf8', flag: 'r' }));
+const areAllTunnelsUp = Object.keys(tunnels).filter((service) => { return tunnels[service]['current_state'] === 0 }).length === 0;
+
+if (areAllTunnelsUp) fs.rmSync(fileName);
+
+function updateData() {
     const db = database.getDatabase(app);
     const dbRefPath = dbBasePath + "/" + env + "/" + (envType ? envType + "/" : "");
     const sentinelRecordsRef = database.ref(db, dbRefPath);
-    console.log(dbRefPath);
 
-    database.onValue(sentinelRecordsRef, (snapshot, err) => {
+    database.onValue(sentinelRecordsRef, async (snapshot, err) => {
         if(err) {
             console.log(err);
         }
-        const fileName = basePath + '/tunnels.json';
-        const updatedURIObj = Object.assign({}, snapshot.val());
-        const tunnels = JSON.stringify(updatedURIObj?.specs?.public_tunnels);
-        fs.writeFileSync(fileName, tunnels, 'utf8');
+        const dbSnapshot = Object.assign({}, snapshot.val());
+        let modifiedDbSnapshot = {};
+        
+        if (!dbSnapshot.performance) {
+            dbSnapshot.performance = {};
+        }
+        
+        if (!dbSnapshot.performance.tunnels) {
+            dbSnapshot.performance.tunnels = {
+                jenkins: [],
+                nginx: [],
+                neo4j: []
+            }
+        } else {
+            if (!dbSnapshot.performance.tunnels.jenkins) {
+                dbSnapshot.performance.tunnels.jenkins = [];
+            }
+
+            if (!dbSnapshot.performance.tunnels.neo4j) {
+                dbSnapshot.performance.tunnels.neo4j = [];
+            }
+
+            if (!dbSnapshot.performance.tunnels.nginx) {
+                dbSnapshot.performance.tunnels.nginx = [];
+            }
+        }
+
+        await Promise.all(Object.keys(tunnels).map((service) => {
+            const isTunnelRunning = tunnels[service]['current_state'] === 1;
+            const log = {
+                timestamp: tunnels[service]['timestamp'],
+                data: {
+                    isRunning: isTunnelRunning.toString(),
+                    errorMessage: tunnels[service]['errorMessage'] ? tunnels[service]['errorMessage'] : 'null'
+                }
+            }
+            dbSnapshot.performance.tunnels[service].push(log);
+            if (isTunnelRunning) {
+                dbSnapshot.specs.public_tunnels[service]['last_activity_check'] = tunnels[service]['timestamp'];
+            }
+        }));
+
+        modifiedDbSnapshot[dbRefPath] = dbSnapshot;
+        database.update(database.ref(db), modifiedDbSnapshot);
         process.exit(0);
     });
 }
@@ -66,7 +110,7 @@ const app = firebase.initializeApp(firebaseConfig);
 const authentication = auth.getAuth(app);
 
 auth.signInWithEmailAndPassword(authentication, email, password).then(async (userCredential) => {
-    fetchData();
+    updateData();
 }).catch((error) => {
     console.log(error);
 });

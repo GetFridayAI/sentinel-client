@@ -44,11 +44,18 @@ if [[ $pwd == "" ]]; then
     pwd=$(pwd)
 fi
 
-sudo node $pwd/fetch_config.js --apiKey=$API_KEY --appId=$APP_ID --dbUrl=$DB_URL --projectId=$PROJECT_ID --authDomain=$AUTH_DOMAIN --storageBucket=$STORAGE_BUCKET --msgSenderId=$MSG_SENDER_ID --env=$ENV --envType=$ENV_TYPE --email=$EMAIL --password=$PASSWORD --dbBasePath=$DB_BASE_PATH --basePath=$pwd
+MONITOR_TUNNELS_JOB="sudo sh $pwd/tunnels/monitor.sh -e $ENV -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h f$AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd"
 
-sudo sh $pwd/tunnels/monitor.sh
+removeCronJob () {
+    crontab -l | grep -v '$1'  | crontab -
+}
 
-echo "Came here"
+removeCronJob $MONITOR_TUNNELS_JOB
+
+crontab -l > cronjobs
+echo "*/2 * * * * $MONITOR_TUNNELS_JOB >/tmp/stdout.log 2>/tmp/stderr.log" >> newfilecron
+crontab newfilecron
+rm newfilecron
 
 # # Get Firmware details
 
@@ -65,17 +72,4 @@ echo "Came here"
 # echo "$KERNEL_VERSION"
 # echo "$FIRMWARE_DETAILS"
 # echo "$CPU_DETAILS"
-
-# MONITOR_TUNNELS_JOB="sudo sh /Users/amitrai/Projects/Friday/codebase/sentinel-client/monitor_tunnels.sh"
-
-# removeCronJob () {
-#     crontab -l | grep -v '$1'  | crontab -
-# }
-
-# crontab -l > cronjobs
-# #echo new cron into cron file
-# echo "* * * * * $command" >> newfilecron
-# #install new cron file
-# crontab newfilecron
-# rm newfilecron
 
