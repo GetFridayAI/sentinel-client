@@ -46,7 +46,7 @@ function checkTunnelStatus (requestUrl, service) {
     });
 
     request.on('error', (err) => {
-        logTunnelState(service, 0, new Date().toString(), err?.message?.toString());
+        logTunnelState(service, 0, new Date().toString(), err.message ? err.message.toString() : "");
     });
 }
 

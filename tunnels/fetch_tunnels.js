@@ -43,8 +43,6 @@ process.argv.map((arg)=>{
     }
 });
 
-fs.writeFileSync("/Users/amitrai/Projects/Friday/codebase/sentinel-client/javascript.txt", "tunnels", 'utf8');
-
 function fetchData() {
     const db = database.getDatabase(app);
     const dbRefPath = dbBasePath + "/" + env + "/" + (envType ? envType + "/" : "");
