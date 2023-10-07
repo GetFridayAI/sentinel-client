@@ -25,11 +25,16 @@ var options = {
     timeout: 60000
   };
 
-checkTunnelStatus(url.format(tunnels?.jenkins?.uri) + 'login?from=%2F', 'jenkins');
-checkTunnelStatus(url.format(tunnels?.neo4j?.uri), 'neo4j');
-checkTunnelStatus(url.format(tunnels?.nginx?.uri), 'nginx');
+checkTunnelStatus(url.format(tunnels.jenkins.uri) + 'login?from=%2F', 'jenkins');
+checkTunnelStatus(url.format(tunnels.neo4j.uri), 'neo4j');
+checkTunnelStatus(url.format(tunnels.nginx.uri), 'nginx');
 
 function checkTunnelStatus (requestUrl, service) {
+    if (!requestUrl) {
+        logTunnelState(service, 0, new Date().toString());
+        return;
+    }
+
     const request = https.get(requestUrl, options, (res) => {
         if (res) {
             logTunnelState(service, res.statusCode, new Date().toString());

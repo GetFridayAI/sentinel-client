@@ -56,7 +56,7 @@ function fetchData() {
         }
         const fileName = basePath + '/tunnels/' + env + (envType ? '.' + envType : '') + '.json';
         const updatedURIObj = Object.assign({}, snapshot.val());
-        const tunnels = JSON.stringify(updatedURIObj?.specs?.public_tunnels);
+        const tunnels = JSON.stringify(updatedURIObj["specs"]["public_tunnels"] ? updatedURIObj["specs"]["public_tunnels"] : {});
         fs.writeFileSync(fileName, tunnels, 'utf8');
         process.exit(0);
     });
