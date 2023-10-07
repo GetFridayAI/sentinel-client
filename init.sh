@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while getopts e:t:k:a:d:i:h:s:m:u:p:b:w: flag
+while getopts e:t:k:a:d:i:h:s:m:u:p:b:w:o: flag
 do
     case "${flag}" in
         e) ENV=${OPTARG};;
@@ -16,6 +16,7 @@ do
         p) PASSWORD=${OPTARG};;
         b) DB_BASE_PATH=${OPTARG};;
         w) pwd=${OPTARG};;
+        o) HOST_OS=${OPTARG};;
     esac
 done
 
@@ -44,7 +45,7 @@ if [[ $pwd == "" ]]; then
     pwd=$(pwd)
 fi
 
-MONITOR_TUNNELS_JOB="sudo sh $pwd/tunnels/monitor.sh -e $ENV -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h f$AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd"
+MONITOR_TUNNELS_JOB="sudo bash $pwd/tunnels/monitor.sh -e $ENV -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h f$AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd"
 
 removeCronJob () {
     crontab -l | grep -v '$1'  | crontab -
