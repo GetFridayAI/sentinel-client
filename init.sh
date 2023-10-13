@@ -46,7 +46,7 @@ fi
 cd $pwd
 sudo npm install
 
-MONITOR_TUNNELS_JOB="sudo bash $pwd/tunnels/monitor.sh -e $ENV -t $ENV_TYPE -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h f$AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd"
+MONITOR_TUNNELS_JOB="sudo bash $pwd/tunnels/monitor.sh -e $ENV -t $ENV_TYPE -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h f$AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd -o $HOST_OS"
 
 removeCronJob () {
     crontab -l | grep -v '$1'  | crontab -

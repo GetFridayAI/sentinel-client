@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while getopts e:t:k:a:d:i:h:s:m:u:p:b:w: flag
+while getopts e:t:k:a:d:i:h:s:m:u:p:b:w:o: flag
 do
     case "${flag}" in
         e) ENV=${OPTARG};;
@@ -16,6 +16,7 @@ do
         p) PASSWORD=${OPTARG};;
         b) DB_BASE_PATH=${OPTARG};;
         w) pwd=${OPTARG};;
+        o) HOST_OS=${OPTARG};;
     esac
 done
 
@@ -38,6 +39,6 @@ checkTunnelState
 if [[ -f "$pwd/tunnels/$fileName" ]]; then
     BASE_PATH=${pwd%"sentinel-client"}
     CONFIG_FILE_PATH="$BASE_PATH/BIOS/config.json"
-    sudo bash $BASE_PATH/BIOS/init-tunnels.sh -c $CONFIG_FILE_PATH -f $BASE_PATH -e $ENV -t $ENV_TYPE -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h $AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH
+    sudo bash $BASE_PATH/BIOS/init-tunnels.sh -c $CONFIG_FILE_PATH -f $BASE_PATH -e $ENV -t $ENV_TYPE -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h $AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -o $HOST_OS
     checkTunnelState
 fi
