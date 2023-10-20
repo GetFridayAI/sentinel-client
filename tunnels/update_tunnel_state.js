@@ -54,7 +54,7 @@ function updateData() {
     const dbRefPath = dbBasePath + "/" + env + "/" + (envType ? envType + "/" : "");
     const sentinelRecordsRef = database.ref(db, dbRefPath);
 
-    database.onValue(sentinelRecordsRef, async (snapshot, err) => {
+    database.onValue(sentinelRecordsRef, (snapshot, err) => {
         if(err) {
             console.log(err);
         }
@@ -85,7 +85,7 @@ function updateData() {
             }
         }
 
-        await Promise.all(Object.keys(tunnels).map((service) => {
+        Object.keys(tunnels).map((service) => {
             const isTunnelRunning = tunnels[service]['current_state'] === 1;
             const log = {
                 timestamp: tunnels[service]['timestamp'],
@@ -98,11 +98,17 @@ function updateData() {
             if (isTunnelRunning) {
                 dbSnapshot.specs.public_tunnels[service]['last_activity_check'] = tunnels[service]['timestamp'];
             }
-        }));
+        });
 
         modifiedDbSnapshot[dbRefPath] = dbSnapshot;
-        database.update(database.ref(db), modifiedDbSnapshot);
-        process.exit(0);
+        database.update(database.ref(db), modifiedDbSnapshot).then(() => {
+            process.exit(0);
+        }).catch((error) => {
+            console.log(error);
+            process.exit(0);
+        });
+    }, {
+        onlyOnce: true
     });
 }
 
