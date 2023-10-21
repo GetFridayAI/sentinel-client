@@ -39,6 +39,6 @@ checkServiceState
 if [[ -f "$pwd/tunnels/$fileName" ]]; then
     BASE_PATH=${pwd%"sentinel-client"}
     CONFIG_FILE_PATH="$BASE_PATH/BIOS/config.json"
-    sudo bash $pwd/init-services.sh -c $CONFIG_FILE_PATH -b $BASE_PATH/BIOS -o $HOST_OS
+    sudo bash $BASE_PATH/BIOS/init-services.sh -c $CONFIG_FILE_PATH -b $BASE_PATH/BIOS -o $HOST_OS
     checkServiceState
 fi
