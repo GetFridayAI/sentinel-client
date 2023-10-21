@@ -46,15 +46,18 @@ fi
 cd $pwd
 sudo npm install
 
+MONITOR_SERVICES_JOB="sudo bash $pwd/services/monitor.sh -e $ENV -t $ENV_TYPE -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h $AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd -o $HOST_OS"
 MONITOR_TUNNELS_JOB="sudo bash $pwd/tunnels/monitor.sh -e $ENV -t $ENV_TYPE -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h $AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd -o $HOST_OS"
 
 removeCronJob () {
     crontab -l | grep -v '$1'  | crontab -
 }
 
+removeCronJob $MONITOR_SERVICES_JOB
 removeCronJob $MONITOR_TUNNELS_JOB
 
 crontab -l > cronjobs
+echo "*/2 * * * * $MONITOR_SERVICES_JOB >/tmp/stdout.log 2>/tmp/stderr.log" >> newfilecron
 echo "*/2 * * * * $MONITOR_TUNNELS_JOB >/tmp/stdout.log 2>/tmp/stderr.log" >> newfilecron
 crontab newfilecron
 rm newfilecron
