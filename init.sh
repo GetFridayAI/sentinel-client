@@ -46,6 +46,70 @@ fi
 cd $pwd
 sudo npm install
 
+# Container Setup - Ensure all Docker containers are running
+echo "========================================"
+echo "Starting Docker Containers..."
+echo "========================================"
+echo ""
+
+if [ -f "$pwd/containers/setup-containers.sh" ]; then
+    bash "$pwd/containers/setup-containers.sh"
+    CONTAINER_SETUP_EXIT=$?
+    if [ $CONTAINER_SETUP_EXIT -ne 0 ]; then
+        echo "ERROR: Container setup failed. Cannot proceed."
+        exit 1
+    fi
+else
+    echo "WARNING: Container setup script not found at containers/setup-containers.sh"
+    echo "Skipping container initialization..."
+fi
+
+echo ""
+
+# Seed Cassandra Configuration
+echo "========================================"
+echo "Seeding Configuration into Cassandra..."
+echo "========================================"
+echo ""
+
+if [ -f "$pwd/containers/seed-config.sh" ]; then
+    bash "$pwd/containers/seed-config.sh" "update"
+    if [ $? -ne 0 ]; then
+        echo "WARNING: Configuration seeding encountered issues. Check logs above."
+        echo "Database setup will still attempt to initialize schemas..."
+    fi
+else
+    echo "WARNING: Configuration seed script not found at containers/seed-config.sh"
+    echo "Skipping configuration seeding..."
+fi
+
+echo ""
+
+# Database Setup - Initialize all databases before starting services
+echo "========================================"
+echo "Initializing Databases..."
+echo "========================================"
+echo ""
+
+if [ -f "$pwd/database-setup/setup-databases.sh" ]; then
+    bash "$pwd/database-setup/setup-databases.sh"
+    if [ $? -ne 0 ]; then
+        echo "WARNING: Database setup encountered issues. Check logs above."
+        echo "Proceeding with service startup anyway..."
+    fi
+else
+    echo "WARNING: Database setup script not found at database-setup/setup-databases.sh"
+    echo "Skipping database initialization..."
+fi
+
+echo ""
+
+echo ""
+echo "========================================"
+echo "Starting Service Monitoring..."
+echo "========================================"
+echo ""
+
 MONITOR_SERVICES_JOB="sudo bash $pwd/services/monitor.sh -e $ENV -t $ENV_TYPE -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h $AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd -o $HOST_OS"
 MONITOR_TUNNELS_JOB="sudo bash $pwd/tunnels/monitor.sh -e $ENV -t $ENV_TYPE -k $API_KEY -a $APP_ID -d $DB_URL -i $PROJECT_ID -h $AUTH_DOMAIN -s $STORAGE_BUCKET -m $MSG_SENDER_ID -u $EMAIL -p $PASSWORD -b $DB_BASE_PATH -w $pwd -o $HOST_OS"
 
@@ -61,20 +125,4 @@ echo "*/2 * * * * $MONITOR_SERVICES_JOB >/tmp/stdout.log 2>/tmp/stderr.log" >> n
 echo "*/2 * * * * $MONITOR_TUNNELS_JOB >/tmp/stdout.log 2>/tmp/stderr.log" >> newfilecron
 crontab newfilecron
 rm newfilecron
-
-# # Get Firmware details
-
-# OSTYPE=$(uname)
-# KERNEL_VERSION=$(uname -r)
-
-# # linux specific commands
-# CPU_DETAILS=$(lscpu)
-
-# # mac specific commands
-# FIRMWARE_DETAILS=$(system_profiler SPSoftwareDataType)
-
-# echo "$OSTYPE"
-# echo "$KERNEL_VERSION"
-# echo "$FIRMWARE_DETAILS"
-# echo "$CPU_DETAILS"
 

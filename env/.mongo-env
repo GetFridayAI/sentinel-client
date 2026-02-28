@@ -1,0 +1,5 @@
+# MongoDB Configuration
+MONGO_DATABASE=admin
+MONGO_USER=admin
+MONGO_PASSWORD=admin
+MONGO_HOST_PORT=27017
